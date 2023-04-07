@@ -1,36 +1,21 @@
-import { useEffect, useState, FormEvent, SyntheticEvent } from "react";
-import classes from "./Tasks.module.css";
+import { useState, FormEvent, SyntheticEvent } from "react";
 
 interface SimpleInputProps {}
 
 const SimpleInput = (props: SimpleInputProps) => {
   const [enteredName, setEnteredName] = useState<string>("");
-  const [enteredNameIsValid, setEnteredNameIsValid] = useState<boolean>(false);
   const [enteredNameTouched, setEnteredNameTouched] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (enteredNameIsValid) {
-      console.log("Name Input is valid!");
-    }
-  }, [enteredNameIsValid]);
+  const enteredNameIsValid = enteredName.trim() !== "";
+  const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
 
   const nameInputChangeHandler = (event: SyntheticEvent) => {
     let target: HTMLInputElement = event.target as HTMLInputElement;
     setEnteredName(target.value);
-
-    if (target.value !== "") {
-      setEnteredNameIsValid(true);
-      return;
-    }
   };
 
   const nameInputBlurHandler = (event: SyntheticEvent) => {
     setEnteredNameTouched(true); //if the input got blurred it was once touched
-
-    if (enteredName.trim() === "") {
-      setEnteredNameIsValid(false);
-      return;
-    }
   };
 
   const formSubmissionHandler = (event: FormEvent) => {
@@ -38,18 +23,13 @@ const SimpleInput = (props: SimpleInputProps) => {
 
     setEnteredNameTouched(true);
 
-    if (enteredName.trim() === "") {
-      setEnteredNameIsValid(false);
+    if (!enteredNameIsValid) {
       return;
     }
 
-    setEnteredNameIsValid(true);
-
-    //nameInputRef.current.value = ""; //=> NOT IDEAL, DON'T DIRECTLY MANIPULATE THE DOM, LET REACT DO THAT FOR YOU
     setEnteredName("");
+    setEnteredNameTouched(false);
   };
-
-  const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
 
   const nameInputClasses = nameInputIsInvalid
     ? "form-control invalid"
