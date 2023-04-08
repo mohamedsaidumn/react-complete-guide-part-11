@@ -1,28 +1,61 @@
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useReducer } from "react";
+
+interface InputStateType {
+  value: string;
+  isTouched: boolean;
+}
+
+type ActionType =
+  | {
+      type: "INPUT";
+      value: string;
+    }
+  | {
+      type: "BLUR" | "RESET";
+    };
+
+const initialInputState: InputStateType = {
+  value: "",
+  isTouched: false,
+};
+
+const inputStateReducer = (state: InputStateType, action: ActionType) => {
+  if (action.type === "INPUT") {
+    return { value: action.value, isTouched: state.isTouched };
+  }
+  if (action.type === "BLUR") {
+    return { isTouched: true, value: state.value };
+  }
+  if (action.type === "RESET") {
+    return { isTouched: false, value: "" };
+  }
+  return initialInputState;
+};
 
 const useInput = (validateValue: (val: string) => boolean) => {
-  const [enteredValue, setEnteredValue] = useState<string>("");
-  const [isTouched, setIsTouched] = useState<boolean>(false);
+  const [inputState, dispatch] = useReducer(
+    inputStateReducer,
+    initialInputState
+  );
 
-  const valueIsValid: boolean = validateValue(enteredValue);
-  const hasError = !valueIsValid && isTouched;
+  const valueIsValid: boolean = validateValue(inputState.value);
+  const hasError = !valueIsValid && inputState.isTouched;
 
   const valueChangeHandler = (event: SyntheticEvent) => {
     let target: HTMLInputElement = event.target as HTMLInputElement;
-    setEnteredValue(target.value);
+    dispatch({ type: "INPUT", value: target.value });
   };
 
   const inputBlurHandler = (event: SyntheticEvent) => {
-    setIsTouched(true);
+    dispatch({ type: "BLUR" });
   };
 
   const reset = () => {
-    setEnteredValue("");
-    setIsTouched(false);
+    dispatch({ type: "RESET" });
   };
 
   return {
-    value: enteredValue,
+    value: inputState.value,
     isValid: valueIsValid,
     hasError,
     valueChangeHandler,
